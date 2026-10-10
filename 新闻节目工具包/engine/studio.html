@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>节目渲染页</title>
+<style>html,body{margin:0;background:#000}canvas{display:block;width:1920px;height:1080px}</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<!-- 载入顺序不能换：核心 → 包装 → 场景 → 节目控制器 → 启动 -->
+<script src="core.js"></script>
+<script src="pkg/package.js"></script>
+<script src="scene/scene.js"></script>
+<script src="film_ctrl.js"></script>
+<script>boot();</script>
+</body>
+</html>

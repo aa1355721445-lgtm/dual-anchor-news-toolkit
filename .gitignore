@@ -1,0 +1,29 @@
+# Dependencies and caches
+node_modules/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Local configuration
+.env
+.env.*
+!.env.example
+工作区.json
+
+# Generated episode files and archive copies
+work/
+配音/
+片段/
+成片/
+节目工具包打包/
+原视频.*
+节目包/场景预览.jpg
+节目包/场景/分层导出/
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log

@@ -1,0 +1,195 @@
+{
+ "_说明": "节目配置。每一项的意思见 新闻节目工具包/docs/config.md；场景 scene 见 scene_rules.md；想用自己的包装就加 \"package\": \"包装/package.js\"，见 package_rules.md。",
+ "show_name": "节目名（改成你的节目名）",
+ "game": "游戏名",
+ "game_en": "GAME NAME",
+ "format": "两位主播的新闻节目：主播 A 负责串场和情绪，主播 B 负责把资讯讲清楚。梗少一点，加梗的位置先留【梗位】一起讨论。",
+ "stickers_dir": "贴纸",
+ "terms_file": "术语对照.md",
+ "style_file": "人物卡/主播人设档案.md",
+ "channel": {
+  "name": "",
+  "lower_third_label": "频道名",
+  "station_logo": "品牌/station.png",
+  "title_art": "品牌/title.png",
+  "game_logo": "品牌/game_logo.png"
+ },
+ "scene": {
+  "type": "example",
+  "dir": "场景",
+  "background": "背景.png",
+  "foreground": "前景.png",
+  "script": "场景/scene.js"
+ },
+ "sections": [
+  "开场 · 内容提要",
+  "要闻 · 福利与活动",
+  "新角色 · <角色名>",
+  "新内容 · <名称>",
+  "优化与调整",
+  "剧情 · 结尾"
+ ],
+ "hosts": {
+  "A": {
+   "name": "主播A",
+   "aliases": [
+    "A"
+   ],
+   "role": "主播",
+   "sticker_prefix": "hostA",
+   "default": "01_idle",
+   "eyecatch": "08_smug",
+   "cover_sticker": "11_fist",
+   "c1": "#ff5d73",
+   "c2": "#ff8a5b",
+   "glow": "255,80,110",
+   "emotions": {
+    "默认": "01_idle",
+    "讲解": "02_explain",
+    "指": "03_point",
+    "开心": "04_happy",
+    "大笑": "05_laugh",
+    "吃惊": "06_surprised",
+    "生气": "07_angry",
+    "得意": "08_smug",
+    "无奈": "09_helpless",
+    "慌张": "10_panic",
+    "握拳": "11_fist",
+    "挥手": "12_wave"
+   },
+   "direction_words": {
+    "指着": "指",
+    "指向大屏": "指",
+    "叉腰": "得意",
+    "得意": "得意",
+    "握拳": "握拳",
+    "举起拳头": "握拳",
+    "挥手": "挥手",
+    "愣住": "吃惊",
+    "吃惊": "吃惊",
+    "大笑": "大笑",
+    "笑出声": "大笑",
+    "叹气": "无奈",
+    "摊手": "无奈",
+    "慌": "慌张",
+    "炸毛": "生气",
+    "认真": "讲解"
+   },
+   "anchors": {}
+  },
+  "B": {
+   "name": "主播B",
+   "aliases": [
+    "B"
+   ],
+   "role": "主持人",
+   "sticker_prefix": "hostB",
+   "default": "01_idle",
+   "eyecatch": "04_happy",
+   "cover_sticker": "12_wave",
+   "c1": "#18a99c",
+   "c2": "#2f86f0",
+   "glow": "60,200,255",
+   "emotions": {
+    "默认": "01_idle",
+    "讲解": "02_explain",
+    "指": "03_point",
+    "开心": "04_happy",
+    "大笑": "05_laugh",
+    "吃惊": "06_surprised",
+    "生气": "07_angry",
+    "得意": "08_smug",
+    "无奈": "09_helpless",
+    "慌张": "10_panic",
+    "握拳": "11_fist",
+    "挥手": "12_wave"
+   },
+   "direction_words": {
+    "指着": "指",
+    "指向大屏": "指",
+    "叉腰": "得意",
+    "得意": "得意",
+    "握拳": "握拳",
+    "举起拳头": "握拳",
+    "挥手": "挥手",
+    "愣住": "吃惊",
+    "吃惊": "吃惊",
+    "大笑": "大笑",
+    "笑出声": "大笑",
+    "叹气": "无奈",
+    "摊手": "无奈",
+    "慌": "慌张",
+    "炸毛": "生气",
+    "认真": "讲解"
+   },
+   "anchors": {}
+  }
+ },
+ "timing": {
+  "gap_switch": 0.36,
+  "gap_same": 0.42,
+  "gap_interrupt": 0.14,
+  "gap_section": 1.45,
+  "gap_into_clip": 0.5,
+  "start": 2.8,
+  "tail": 2.4,
+  "hook_start": 0.8,
+  "gap_after_hook": 3.3
+ },
+ "audio": {
+  "orig_level": 0.32,
+  "orig_rule": "不留 PV 音乐；只留没有官方讲解的实机音效、角色语音",
+  "sfx_level": 0.5
+ },
+ "animation": {
+  "talk": {
+   "amp": 1.15,
+   "freq": 3.4,
+   "damp": 0.26,
+   "onset": 0.18,
+   "rise": 0.04,
+   "gap": 0.11,
+   "kick": 0.6,
+   "kick_lv": 0.8,
+   "tilt": 0.22,
+   "breath": 0.008
+  },
+  "switch": {
+   "pop": 0.17,
+   "jump_big": 520,
+   "jump_small": 300,
+   "jump_hz": 2.6,
+   "jump_damp": 0.32,
+   "land_jump": 620,
+   "land_squash": 0.16
+  },
+  "camera": {
+   "spring_hz": 1.5,
+   "spring_damp": 0.58,
+   "closeup_zoom": 1.38,
+   "dutch_zoom": 1.3,
+   "dutch_angle": -0.05,
+   "push_rate": 0.06,
+   "push_max": 0.4,
+   "wall_in": 0.6,
+   "wall_overshoot": 1.05,
+   "wall_flash": 0.55,
+   "wall_out": 0.62,
+   "return_delay": 1.5
+  }
+ },
+ "footage": {
+  "fill_letterbox": true
+ },
+ "ui": {
+  "subtitle_max_chars": 22,
+  "keyword_max": 3,
+  "keyword_hold": 2.9,
+  "hook_sections": [
+   "看点速报"
+  ],
+  "hook_title": "看点速报",
+  "hook_outro": "精彩内容 · 请继续观看",
+  "lower_third_height": 120
+ }
+}

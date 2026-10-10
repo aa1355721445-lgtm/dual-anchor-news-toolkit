@@ -1,0 +1,70 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--navy:#0b1638;--ink:#08102a;--red:#e8293b}
+  body{overflow:hidden;font-family:"Noto Sans CJK SC","Microsoft YaHei","PingFang SC",sans-serif;background:var(--navy)}
+  #c{position:relative;overflow:hidden}
+  .bg{position:absolute;inset:0;background:url(bg.jpg) center/cover;filter:grayscale(1) contrast(1.1) brightness(1.18)}
+  .tone{position:absolute;inset:0;background:linear-gradient(160deg,#1d3f9e 0%,#0b1638 75%);mix-blend-mode:multiply}
+  .tone2{position:absolute;inset:0;background:radial-gradient(ellipse 55% 60% at 62% 45%,rgba(90,140,255,.42),rgba(11,22,56,0) 70%);mix-blend-mode:screen}
+  .dots{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.10) 1.6px,transparent 1.8px);background-size:22px 22px;
+     -webkit-mask:linear-gradient(180deg,transparent 0%,#000 60%);mask:linear-gradient(180deg,transparent 0%,#000 60%)}
+  .vign{position:absolute;inset:0;background:radial-gradient(ellipse 75% 70% at 50% 50%,transparent 55%,rgba(5,10,30,.75))}
+  .panel{position:absolute;left:-200px;top:0;bottom:0;background:linear-gradient(90deg,rgba(6,12,34,.92) 60%,rgba(6,12,34,0));clip-path:polygon(0 0,100% 0,78% 100%,0 100%)}
+  .frame{position:absolute;inset:36px;border:2px solid rgba(255,255,255,.20)}
+  .micro{position:absolute;font:600 20px/1 "Inter Display","Inter","Segoe UI",sans-serif;letter-spacing:7px;color:rgba(255,255,255,.55);white-space:nowrap}
+  .ghost{position:absolute;font-weight:900;font-family:"Inter Display","Inter","Segoe UI",sans-serif;font-style:italic;line-height:.8;
+     color:transparent;-webkit-text-stroke:3px rgba(255,255,255,.22);white-space:nowrap}
+  .t{position:absolute}
+  .k{display:flex;align-items:center;gap:18px}
+  .k b{font-weight:900;font-size:30px;letter-spacing:10px;color:#fff;background:var(--red);padding:6px 18px 8px 26px}
+  .k s{display:block;height:2px;background:rgba(255,255,255,.6)}
+  .k i{font:600 20px/1 "Inter Display","Inter",sans-serif;letter-spacing:6px;color:rgba(255,255,255,.7);font-style:normal}
+  .h1{display:flex;align-items:flex-end}
+  .yh{position:relative;font-weight:900;line-height:.86;letter-spacing:-8px;color:#fff;white-space:nowrap}
+  .yh::after{content:attr(data-t);position:absolute;left:0;top:0;color:var(--red);clip-path:polygon(0 56%,100% 44%,100% 49%,0 61%)}
+  .num{position:relative;margin-left:28px;margin-bottom:6px}
+  .num .n{font-weight:900;font-style:italic;font-family:"Inter Display","Inter","Segoe UI",sans-serif;line-height:.8;letter-spacing:-14px;color:var(--red);white-space:nowrap}
+  .num .v{position:absolute;left:-4px;top:-46px;font:800 30px/1 "Inter Display","Inter",sans-serif;letter-spacing:10px;color:#fff}
+  .h2{display:flex;gap:10px}
+  .h2 span{display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--ink);background:#fff}
+  .h2 span.hot{background:var(--red);color:#fff}
+  .info{display:flex;align-items:center;color:#fff;font-weight:700;letter-spacing:3px;white-space:nowrap}
+  .info em{font-style:normal;padding:0 24px;border-left:2px solid rgba(255,255,255,.5)}
+  .info em:first-child{padding-left:0;border-left:none}
+  .gift{display:flex;align-items:center;gap:18px}
+  .gift b{font-weight:900;font-size:46px;color:#fff;background:var(--red);padding:8px 26px 12px;letter-spacing:4px}
+  .gift i{font:700 22px/1.3 "Inter Display","Inter",sans-serif;font-style:normal;letter-spacing:4px;color:rgba(255,255,255,.65)}
+  .stk{position:absolute;filter:drop-shadow(0 16px 22px rgba(0,0,0,.5))}
+  .logo{position:absolute;filter:drop-shadow(0 8px 16px rgba(0,0,0,.5))}
+</style></head>
+<body><div id="c"></div>
+<script>
+const D=/*DATA*/null;
+const L=D.ratio==='4x3'
+ ? {left:110,k:214,ks:160,h1:300,big:300,h2:620,tile:150,tf:112,info:806,inf:38,gift:884,ghost:760,gR:-90,gT:60,panel:1240,logoW:300,logoR:62,logoT:54,hA:350,hB:334,rA:280,rB:30,foot:72}
+ : {left:140,k:122,ks:220,h1:222,big:280,h2:506,tile:140,tf:104,info:678,inf:40,gift:752,ghost:820,gR:-60,gT:30,panel:1420,logoW:340,logoR:70,logoT:58,hA:390,hB:372,rA:320,rB:40,foot:64};
+const c=document.getElementById('c'); document.body.style.width=c.style.width=D.W+'px'; document.body.style.height=c.style.height=D.H+'px';
+const esc=s=>String(s||'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
+const sub=[...(D.sub||'')];
+c.innerHTML=`
+ <div class="bg"></div><div class="tone"></div><div class="tone2"></div><div class="dots"></div><div class="vign"></div>
+ <div class="ghost" style="right:${L.gR}px;top:${L.gT}px;font-size:${L.ghost}px;letter-spacing:-40px">${esc(D.version)}</div>
+ <div class="panel" style="width:${L.panel}px"></div><div class="frame"></div>
+ <div class="micro" style="left:${L.left}px;bottom:${L.foot}px">${esc(D.foot||((D.game_en?D.game_en+' · ':'')+'PREVIEW REPORT'))}</div>
+ <img class="stk" src="hostA.png" style="right:${L.rA}px;bottom:-24px;height:${L.hA}px;transform:rotate(-4deg)" onerror="this.remove()">
+ <img class="stk" src="hostB.png" style="right:${L.rB}px;bottom:-20px;height:${L.hB}px;transform:rotate(4deg) scaleX(-1)" onerror="this.remove()">
+ <div class="t k" style="left:${L.left}px;top:${L.k}px"><b>${esc(D.kicker)}</b><s style="width:${L.ks}px"></s><i>${esc(D.special)}</i></div>
+ <div class="t h1" style="left:${L.left}px;top:${L.h1}px"><div class="yh" data-t="${esc(D.game)}" style="font-size:${L.big}px">${esc(D.game)}</div>
+   ${D.version?`<div class="num"><div class="v">${esc(D.ver_label)}</div><div class="n" style="font-size:${L.big}px">${esc(D.version)}</div></div>`:''}</div>
+ <div class="t h2" style="left:${L.left}px;top:${L.h2}px">${sub.map((ch,i)=>`<span class="${i===D.hot?'hot':''}" style="width:${L.tile}px;height:${L.tile}px;font-size:${L.tf}px">${esc(ch)}</span>`).join('')}</div>
+ <div class="t info" style="left:${L.left}px;top:${L.info}px;font-size:${L.inf}px">${(D.info||[]).map(x=>`<em>${esc(x)}</em>`).join('')}</div>
+ ${D.gift?`<div class="t gift" style="left:${L.left}px;top:${L.gift}px"><b>${esc(D.gift)}</b><i>${esc(D.gift_note)}</i></div>`:''}
+ <img class="logo" src="logo.png" style="right:${L.logoR}px;top:${L.logoT}px;width:${L.logoW}px" onerror="this.remove()">`;
+// shrink the headline if a long game name would overflow
+requestAnimationFrame(()=>{ const h=c.querySelector('.h1'); const maxW=D.W-L.left-(D.ratio==='4x3'?420:520);
+  if(h.scrollWidth>maxW){ const k=maxW/h.scrollWidth; h.style.transformOrigin='left bottom'; h.style.transform=`scale(${k})`; }
+  // footer line must stay clear of the host stickers
+  const m=c.querySelector('.micro'), mW=D.W-L.left-L.rA-L.hA*0.85-40; if(m.scrollWidth>mW){ m.style.transformOrigin='left bottom'; m.style.transform=`scale(${mW/m.scrollWidth})`; } });
+</script></body></html>

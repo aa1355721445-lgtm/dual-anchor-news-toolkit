@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>场景编辑器</title>
+<style>
+  :root{--bg:#14161c;--panel:#1d2029;--line:#2c303c;--txt:#e7e9ef;--sub:#9aa0ae;--acc:#ff5d73;--acc2:#4fd1c5}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.5 "Microsoft YaHei","PingFang SC",system-ui,sans-serif}
+  header{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;gap:16px;align-items:baseline;flex-wrap:wrap}
+  header h1{font-size:17px;margin:0} header span{color:var(--sub);font-size:13px}
+  main{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:14px;padding:14px 16px}
+  @media (max-width:1000px){ main{grid-template-columns:1fr} }
+  #wrap{position:relative;background:#000;border-radius:8px;overflow:hidden;aspect-ratio:16/9;align-self:start}
+  canvas{width:100%;height:100%;display:block;cursor:crosshair}
+  .box{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:10px}
+  .box h3{margin:0 0 8px;font-size:13px;color:var(--sub);font-weight:600}
+  label{display:flex;align-items:center;gap:6px;margin:3px 0;font-size:13px}
+  input[type=number]{width:74px;background:#11131a;color:var(--txt);border:1px solid var(--line);border-radius:5px;padding:3px 5px}
+  input[type=file]{font-size:12px;max-width:100%}
+  .row{display:flex;flex-wrap:wrap;gap:4px 12px}
+  button{background:#2a2e3a;color:var(--txt);border:1px solid #3a3f4e;border-radius:6px;padding:5px 10px;margin:2px 4px 2px 0;cursor:pointer;font:inherit}
+  button.on{background:var(--acc);border-color:var(--acc)}
+  textarea{width:100%;height:220px;background:#11131a;color:#cfe;border:1px solid var(--line);border-radius:6px;font:12px/1.45 Consolas,monospace;padding:8px}
+  .tip{color:var(--sub);font-size:12px;margin:4px 0 0}
+  #msg{color:var(--acc2);font-size:12px;min-height:18px}
+</style>
+</head>
+<body>
+<header><h1>场景编辑器</h1><span>把大屏、两位主播、脚底线拖到你的背景图上，复制下面的 scene 配置贴进 show.json。整个文件离线可用，双击打开即可。</span></header>
+<main>
+  <div>
+    <div id="wrap"><canvas id="cv" width="1920" height="1080"></canvas></div>
+    <p class="tip">拖动：红框=大屏（右下角圆点改大小）｜人物=主播位置（左右拖改 x，上下拖改脚底线）｜人物头顶圆点=贴纸高度｜白色十字=泛光中心｜紫线=裁切线。坐标都是 1920×1080。</p>
+  </div>
+  <div>
+    <div class="box"><h3>① 载入</h3>
+      <label>show.json <input type="file" id="fShow" accept=".json"></label>
+      <label>背景图 <input type="file" id="fBg" accept="image/*"></label>
+      <label>前景图 <input type="file" id="fFg" accept="image/*"></label>
+      <label>主播A贴纸 <input type="file" id="fA" accept="image/*"></label>
+      <label>主播B贴纸 <input type="file" id="fB" accept="image/*"></label>
+      <p class="tip">都不选也能用：没有背景显示网格，没有贴纸显示占位小人。贴纸选你最常用的「默认」表情那张。</p>
+    </div>
+    <div class="box"><h3>② 预览镜头</h3>
+      <div id="cams"><button data-c="wide" class="on">全景</button><button data-c="A">A 近景</button><button data-c="B">B 近景</button><button data-c="wall">推进大屏</button><button data-c="dutch">倾斜</button></div>
+      <div class="row"><label><input type="checkbox" id="oBar" checked>新闻栏区域</label><label><input type="checkbox" id="oLogo" checked>台标区域</label><label><input type="checkbox" id="oCam">近景取景框</label><label><input type="checkbox" id="oFg" checked>前景</label></div>
+      <label>近景放大 <input type="number" id="zoom" step="0.02" value="1.38"></label>
+    </div>
+    <div class="box"><h3>③ 数值（拖动会同步）</h3>
+      <div class="row"><label>大屏 x <input type="number" id="sx"></label><label>y <input type="number" id="sy"></label><label>w <input type="number" id="sw"></label><label>h <input type="number" id="sh"></label></div>
+      <label><input type="checkbox" id="lock" checked>锁定 16:9（实机画面不裁边）</label>
+      <label><input type="checkbox" id="useFrame">单独设变暗区域 screen_frame（比如整面屏幕墙比画面大）</label>
+      <div class="row" id="frameRow" style="display:none"><label>x <input type="number" id="fx"></label><label>y <input type="number" id="fy"></label><label>w <input type="number" id="fw"></label><label>h <input type="number" id="fh"></label></div>
+      <div class="row"><label>A 的 x <input type="number" id="ax"></label><label>B 的 x <input type="number" id="bx"></label></div>
+      <div class="row"><label>脚底线 base <input type="number" id="base"></label><label>贴纸高 height <input type="number" id="hgt"></label></div>
+      <div class="row"><label><input type="checkbox" id="useCut">裁切线 cut_y</label><input type="number" id="cut"></div>
+      <div class="row"><label>泛光 glow x <input type="number" id="gx"></label><label>y <input type="number" id="gy"></label></div>
+    </div>
+    <div class="box"><h3>④ 复制到 show.json → "scene"</h3>
+      <textarea id="out" spellcheck="false"></textarea>
+      <button id="copy">复制 scene 配置</button><button id="dl">下载改好的 show.json</button>
+      <div id="msg"></div>
+    </div>
+  </div>
+</main>
+<script>
+const W=1920,H=1080, cv=document.getElementById('cv'), g=cv.getContext('2d');
+const UIF='"Microsoft YaHei","PingFang SC","Noto Sans CJK SC",sans-serif';
+let SHOW=null, BG=null, FG=null, STK={A:null,B:null}, CAM='wide';
+const S={screen:{x:560,y:118,w:800,h:450}, frame:null, A:600, B:1320, base:905, height:640, cut:null, glow:null};
+const $=id=>document.getElementById(id);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+function rrect(g,x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
+
+/* ---- 贴纸：和渲染引擎同样的摆法（整张图高度 = height，按人物脚底中心落在 x/base） ---- */
+function prep(src){ const w=src.width,h=src.height; let bb={x0:0,x1:w,y0:0,y1:h,cx:w/2};
+  try{ const c=document.createElement('canvas'); c.width=w; c.height=h; const x=c.getContext('2d'); x.drawImage(src,0,0); const d=x.getImageData(0,0,w,h).data;
+    let x0=w,x1=0,y0=h,y1=0; for(let y=0;y<h;y+=2) for(let xx=0;xx<w;xx+=2) if(d[(y*w+xx)*4+3]>40){ if(xx<x0)x0=xx; if(xx>x1)x1=xx; if(y<y0)y0=y; if(y>y1)y1=y; }
+    if(x1>x0){ let sm=0,n=0; for(let y=Math.max(y0,y1-Math.round(h*.06)); y<=y1; y+=2) for(let xx=x0;xx<=x1;xx+=2) if(d[(y*w+xx)*4+3]>40){ sm+=xx; n++; } bb={x0,x1,y0,y1,cx:n?sm/n:(x0+x1)/2}; } }catch(e){}
+  return {img:src,w,h,bb}; }
+function placeholder(who){ const c=document.createElement('canvas'); c.width=560; c.height=1000; const x=c.getContext('2d'), cx=280, col=who==='A'?['#ff5d73','#ff8a5b']:['#18a99c','#2f86f0'];
+  const h=SHOW&&SHOW.hosts&&SHOW.hosts[who]; if(h&&h.c1){ col[0]=h.c1; col[1]=h.c2||h.c1; }
+  x.lineWidth=22; x.strokeStyle='#fff'; const body=()=>{ x.beginPath(); x.moveTo(cx-190,1000); x.bezierCurveTo(cx-200,700,cx-150,560,cx,560); x.bezierCurveTo(cx+150,560,cx+200,700,cx+190,1000); x.closePath(); };
+  body(); x.stroke(); const gr=x.createLinearGradient(0,560,0,1000); gr.addColorStop(0,col[0]); gr.addColorStop(1,col[1]); x.fillStyle=gr; body(); x.fill();
+  x.beginPath(); x.arc(cx,380,170,0,7); x.stroke(); x.fillStyle='#f3f4f8'; x.fill(); x.fillStyle=col[0]; x.beginPath(); x.arc(cx,380,170,Math.PI*1.05,Math.PI*1.95); x.fill();
+  x.fillStyle='#2b3040'; for(const s of [-1,1]){ x.beginPath(); x.ellipse(cx+s*62,400,16,20,0,0,7); x.fill(); }
+  x.font=`900 70px ${UIF}`; x.textAlign='center'; x.fillStyle='#fff'; x.fillText((h&&h.name)||('主播'+who),cx,800); return prep(c); }
+function rec(who){ return STK[who]||(STK['_'+who]=STK['_'+who]||placeholder(who)); }
+function hostBox(who){ const r=rec(who), sc=S.height/r.h, x=who==='A'?S.A:S.B; return {x:x+(r.bb.x0-r.bb.cx)*sc, y:S.base-(r.bb.y1-r.bb.y0)*sc, w:(r.bb.x1-r.bb.x0)*sc, h:(r.bb.y1-r.bb.y0)*sc}; }
+function drawHost(who){ const r=rec(who), sc=S.height/r.h, x=who==='A'?S.A:S.B;
+  g.save(); if(S.cut){ g.beginPath(); g.rect(0,0,W,S.cut); g.clip(); } g.translate(x,S.base); g.scale(sc,sc); g.drawImage(r.img,-r.bb.cx,-r.bb.y1); g.restore(); }
+
+/* ---- 镜头（和引擎同样的算法） ---- */
+function camFor(m){ const z=+$('zoom').value||1.38, cy=S.base-S.height*.63, sc=S.screen;
+  let c={x:960,y:540,z:1,r:0};
+  if(m==='A') c={x:S.A+40,y:cy,z,r:0}; if(m==='B') c={x:S.B-40,y:cy,z,r:0};
+  if(m==='dutch') c={x:S.A+120,y:cy+20,z:1.3,r:-.05};
+  if(m==='wall') c={x:sc.x+sc.w/2,y:sc.y+sc.h/2,z:Math.max(1080/sc.h,1920/sc.w),r:0};
+  const zmin=1+1.8*Math.abs(c.r); if(c.z<zmin) c.z=zmin; const hw=960/c.z, hh=540/c.z; c.x=clamp(c.x,hw,1920-hw); c.y=clamp(c.y,hh,1080-hh); return c; }
+let VIEW={x:960,y:540,z:1,r:0};
+function toWorld(px,py){ const c=VIEW; let x=(px-960)/c.z, y=(py-540)/c.z; const co=Math.cos(-c.r), si=Math.sin(-c.r); return {x:c.x+x*co-y*si, y:c.y+x*si+y*co}; }
+
+/* ---- 画 ---- */
+function grid(){ g.fillStyle='#232838'; g.fillRect(0,0,W,H); g.strokeStyle='rgba(255,255,255,.06)'; g.lineWidth=2; for(let x=0;x<=W;x+=120){ g.beginPath(); g.moveTo(x,0); g.lineTo(x,H); g.stroke(); } for(let y=0;y<=H;y+=120){ g.beginPath(); g.moveTo(0,y); g.lineTo(W,y); g.stroke(); } }
+function cover(im){ const k=Math.max(W/im.width,H/im.height), w=im.width*k, h=im.height*k; g.drawImage(im,(W-w)/2,(H-h)/2,w,h); }
+function tag(x,y,t,col){ g.font=`700 26px ${UIF}`; const w=g.measureText(t).width+20; x=clamp(x,4,W-w-4); y=clamp(y,4,H-40); g.fillStyle='rgba(0,0,0,.75)'; rrect(g,x,y,w,36,8); g.fill(); g.fillStyle=col; g.textBaseline='middle'; g.fillText(t,x+10,y+18); }
+function draw(){
+  VIEW=camFor(CAM); const c=VIEW;
+  g.setTransform(1,0,0,1,0,0); g.fillStyle='#000'; g.fillRect(0,0,W,H);
+  g.save(); g.translate(960,540); g.rotate(c.r); g.scale(c.z,c.z); g.translate(-c.x,-c.y);
+  if(BG) cover(BG); else grid();
+  const sc=S.screen, fr=S.frame||sc;
+  if(CAM==='wall'){ g.fillStyle='#04060c'; g.fillRect(fr.x,fr.y,fr.w,fr.h); }
+  g.fillStyle=CAM==='wall'?'rgba(47,134,240,.95)':'rgba(47,134,240,.35)'; g.fillRect(sc.x,sc.y,sc.w,sc.h);
+  g.fillStyle='rgba(255,255,255,.9)'; g.font=`900 ${Math.round(sc.h*.12)}px ${UIF}`; g.textAlign='center'; g.textBaseline='middle'; g.fillText('实机画面 '+sc.w+'×'+sc.h,sc.x+sc.w/2,sc.y+sc.h/2); g.textAlign='left';
+  if(CAM!=='wall'){ drawHost('A'); drawHost('B'); if(FG && $('oFg').checked) cover(FG); }
+  // 编辑手柄
+  g.lineWidth=4/c.z;
+  if(S.frame){ g.setLineDash([14,8]); g.strokeStyle='#ffb020'; g.strokeRect(fr.x,fr.y,fr.w,fr.h); g.setLineDash([]); handle(fr.x+fr.w,fr.y+fr.h,'#ffb020'); }
+  g.strokeStyle='#ff3b4f'; g.strokeRect(sc.x,sc.y,sc.w,sc.h); handle(sc.x+sc.w,sc.y+sc.h,'#ff3b4f');
+  for(const w of ['A','B']){ const b=hostBox(w), col=w==='A'?'#ff7a8c':'#5cc8ff'; g.setLineDash([8,8]); g.strokeStyle=col; g.strokeRect(b.x,b.y,b.w,b.h); g.setLineDash([]); handle(w==='A'?S.A:S.B,S.base-S.height*(rec(w).bb.y1-rec(w).bb.y0)/rec(w).h,col); }
+  g.strokeStyle='#ffe14a'; g.setLineDash([16,10]); g.beginPath(); g.moveTo(0,S.base); g.lineTo(W,S.base); g.stroke(); g.setLineDash([]);
+  if(S.cut){ g.strokeStyle='#c07bff'; g.beginPath(); g.moveTo(0,S.cut); g.lineTo(W,S.cut); g.stroke(); }
+  const gl=S.glow||[sc.x+sc.w/2,sc.y+sc.h/2]; g.strokeStyle='#fff'; g.beginPath(); g.arc(gl[0],gl[1],14,0,7); g.moveTo(gl[0]-24,gl[1]); g.lineTo(gl[0]+24,gl[1]); g.moveTo(gl[0],gl[1]-24); g.lineTo(gl[0],gl[1]+24); g.stroke();
+  if($('oCam').checked) for(const m of ['A','B']){ const k=camFor(m), vw=1920/k.z, vh=1080/k.z; g.setLineDash([3,9]); g.strokeStyle='#78ffa0'; g.strokeRect(k.x-vw/2,k.y-vh/2,vw,vh); g.setLineDash([]); }
+  g.restore();
+  // 屏幕层：新闻栏 / 台标占位
+  if($('oBar').checked){ const LH=(SHOW&&SHOW.ui&&SHOW.ui.lower_third_height)||120; g.fillStyle='rgba(18,61,156,.55)'; g.fillRect(0,H-LH,W,LH); tag(330,H-LH+8,'新闻栏（固定在画面底部，会盖住这一条，高度 ui.lower_third_height）','#ffd84a'); }
+  if($('oLogo').checked){ g.fillStyle='rgba(255,255,255,.18)'; rrect(g,36,40,360,50,12); g.fill(); tag(44,46,'台标 / LIVE','#fff'); }
+  tag(W-360,16,{wide:'全景',A:'A 近景',B:'B 近景',wall:'推进大屏',dutch:'倾斜'}[CAM]+'  ×'+VIEW.z.toFixed(2),'#ffe14a');
+  syncInputs(); output();
+}
+function handle(x,y,col){ g.fillStyle=col; g.beginPath(); g.arc(x,y,14/VIEW.z,0,7); g.fill(); g.strokeStyle='#fff'; g.stroke(); }
+
+/* ---- 拖动 ---- */
+let drag=null;
+function hit(p){ const sc=S.screen, fr=S.frame, r=24/VIEW.z, near=(x,y)=>Math.hypot(p.x-x,p.y-y)<r*1.4;
+  if(fr && near(fr.x+fr.w,fr.y+fr.h)) return {k:'fsize'};
+  if(near(sc.x+sc.w,sc.y+sc.h)) return {k:'ssize'};
+  for(const w of ['A','B']){ const x=w==='A'?S.A:S.B, top=S.base-S.height*(rec(w).bb.y1-rec(w).bb.y0)/rec(w).h; if(near(x,top)) return {k:'hgt',w}; }
+  const gl=S.glow||[sc.x+sc.w/2,sc.y+sc.h/2]; if(near(gl[0],gl[1])) return {k:'glow'};
+  if(S.cut && Math.abs(p.y-S.cut)<r) return {k:'cut'};
+  for(const w of ['A','B']){ const b=hostBox(w); if(p.x>b.x&&p.x<b.x+b.w&&p.y>b.y&&p.y<b.y+b.h) return {k:'host',w,dx:p.x-(w==='A'?S.A:S.B),dy:p.y-S.base}; }
+  if(p.x>sc.x&&p.x<sc.x+sc.w&&p.y>sc.y&&p.y<sc.y+sc.h) return {k:'smove',dx:p.x-sc.x,dy:p.y-sc.y};
+  if(fr && p.x>fr.x&&p.x<fr.x+fr.w&&p.y>fr.y&&p.y<fr.y+fr.h) return {k:'fmove',dx:p.x-fr.x,dy:p.y-fr.y};
+  if(Math.abs(p.y-S.base)<r) return {k:'base'};
+  return null; }
+function ptr(e){ const r=cv.getBoundingClientRect(); return toWorld((e.clientX-r.left)/r.width*W,(e.clientY-r.top)/r.height*H); }
+cv.addEventListener('pointerdown',e=>{ drag=hit(ptr(e)); if(drag) cv.setPointerCapture(e.pointerId); });
+cv.addEventListener('pointermove',e=>{ const p=ptr(e);
+  if(!drag){ const h=hit(p); cv.style.cursor=h?(h.k.includes('size')||h.k==='hgt'?'nwse-resize':'move'):'crosshair'; return; }
+  const R=Math.round, sc=S.screen;
+  if(drag.k==='smove'){ sc.x=R(p.x-drag.dx); sc.y=R(p.y-drag.dy); }
+  if(drag.k==='ssize'){ sc.w=Math.max(80,R(p.x-sc.x)); sc.h=$('lock').checked?R(sc.w*9/16):Math.max(45,R(p.y-sc.y)); }
+  if(drag.k==='fmove'){ S.frame.x=R(p.x-drag.dx); S.frame.y=R(p.y-drag.dy); }
+  if(drag.k==='fsize'){ S.frame.w=Math.max(80,R(p.x-S.frame.x)); S.frame.h=Math.max(45,R(p.y-S.frame.y)); }
+  if(drag.k==='host'){ S[drag.w]=R(p.x-drag.dx); S.base=R(p.y-drag.dy); }
+  if(drag.k==='base') S.base=R(p.y);
+  if(drag.k==='hgt'){ const r=rec(drag.w), f=(r.bb.y1-r.bb.y0)/r.h; S.height=Math.max(100,R((S.base-p.y)/f)); }
+  if(drag.k==='cut') S.cut=R(p.y);
+  if(drag.k==='glow') S.glow=[R(p.x),R(p.y)];
+  draw(); });
+cv.addEventListener('pointerup',()=>{ drag=null; });
+
+/* ---- 数值框 ---- */
+const IN={sx:['screen','x'],sy:['screen','y'],sw:['screen','w'],sh:['screen','h'],fx:['frame','x'],fy:['frame','y'],fw:['frame','w'],fh:['frame','h']};
+function syncInputs(){ const a=document.activeElement;
+  for(const [id,[o,k]] of Object.entries(IN)) if(a!==$(id) && S[o]) $(id).value=S[o][k];
+  for(const [id,v] of [['ax',S.A],['bx',S.B],['base',S.base],['hgt',S.height],['cut',S.cut||''],['gx',(S.glow||[])[0]??''],['gy',(S.glow||[])[1]??'']]) if(a!==$(id)) $(id).value=v; }
+for(const [id,[o,k]] of Object.entries(IN)) $(id).oninput=e=>{ if(!S[o]) return; S[o][k]=+e.target.value; if(o==='screen'&&k==='w'&&$('lock').checked) S.screen.h=Math.round(S.screen.w*9/16); draw(); };
+$('ax').oninput=e=>{S.A=+e.target.value;draw();}; $('bx').oninput=e=>{S.B=+e.target.value;draw();};
+$('base').oninput=e=>{S.base=+e.target.value;draw();}; $('hgt').oninput=e=>{S.height=+e.target.value;draw();};
+$('cut').oninput=e=>{S.cut=+e.target.value||null;draw();}; $('useCut').onchange=e=>{ S.cut=e.target.checked?(S.base+40):null; draw(); };
+$('gx').oninput=$('gy').oninput=()=>{ S.glow=[+$('gx').value,+$('gy').value]; draw(); };
+$('useFrame').onchange=e=>{ $('frameRow').style.display=e.target.checked?'':'none'; S.frame=e.target.checked?{x:S.screen.x-20,y:S.screen.y-20,w:S.screen.w+40,h:S.screen.h+40}:null; draw(); };
+$('lock').onchange=()=>{ if($('lock').checked) S.screen.h=Math.round(S.screen.w*9/16); draw(); };
+for(const id of ['oBar','oLogo','oCam','oFg','zoom']) $(id).oninput=draw;
+document.querySelectorAll('#cams button').forEach(b=>b.onclick=()=>{ CAM=b.dataset.c; document.querySelectorAll('#cams button').forEach(x=>x.classList.toggle('on',x===b)); draw(); });
+
+/* ---- 输出 ---- */
+function sceneBlock(){ const base=Object.assign({},(SHOW&&SHOW.scene)||{type:'image',dir:'场景',background:'背景.png',foreground:'前景.png'});
+  base.screen={...S.screen}; if(S.frame) base.screen_frame={...S.frame}; else delete base.screen_frame;
+  base.hosts={A:{x:S.A},B:{x:S.B},base:S.base,height:S.height}; if(S.cut) base.hosts.cut_y=S.cut;
+  if(S.glow) base.glow=[...S.glow]; else delete base.glow; return base; }
+function output(){ $('out').value='"scene": '+JSON.stringify(sceneBlock(),null,1); }
+$('copy').onclick=async()=>{ try{ await navigator.clipboard.writeText($('out').value); $('msg').textContent='已复制。打开 show.json，把原来的 "scene": {...} 整段换掉。'; }catch(e){ $('out').select(); $('msg').textContent='浏览器不让直接复制：已选中文字，按 Ctrl+C。'; } };
+$('dl').onclick=()=>{ if(!SHOW){ $('msg').textContent='先在 ① 里载入 show.json。'; return; } const s=JSON.parse(JSON.stringify(SHOW)); s.scene=sceneBlock();
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(s,null,1)],{type:'application/json'})); a.download='show.json'; a.click(); $('msg').textContent='已下载 show.json，替换节目包里的那一份（先备份旧的）。'; };
+
+/* ---- 载入文件 ---- */
+const img=f=>new Promise(r=>{ const u=URL.createObjectURL(f), im=new Image(); im.onload=()=>r(im); im.src=u; });
+$('fBg').onchange=async e=>{ if(e.target.files[0]){ BG=await img(e.target.files[0]); draw(); } };
+$('fFg').onchange=async e=>{ if(e.target.files[0]){ FG=await img(e.target.files[0]); draw(); } };
+for(const w of ['A','B']) $('f'+w).onchange=async e=>{ if(e.target.files[0]){ STK[w]=prep(await img(e.target.files[0])); draw(); } };
+$('fShow').onchange=async e=>{ const f=e.target.files[0]; if(!f) return;
+  try{ SHOW=JSON.parse(await f.text()); }catch(err){ $('msg').textContent='show.json 读不出来：'+err.message; return; }
+  const sc=SHOW.scene||{}, h=sc.hosts||{};
+  if(sc.screen) S.screen={...sc.screen}; if(sc.screen_frame){ S.frame={...sc.screen_frame}; $('useFrame').checked=true; $('frameRow').style.display=''; }
+  if(h.A&&h.A.x!=null) S.A=h.A.x; if(h.B&&h.B.x!=null) S.B=h.B.x; if(h.base) S.base=h.base; if(h.height) S.height=h.height;
+  if(h.cut_y){ S.cut=h.cut_y; $('useCut').checked=true; } if(sc.glow) S.glow=[...sc.glow];
+  const z=SHOW.animation&&SHOW.animation.camera&&SHOW.animation.camera.closeup_zoom; if(z) $('zoom').value=z;
+  delete STK._A; delete STK._B;
+  $('msg').textContent='已载入 '+(SHOW.show_name||'show.json')+'（场景类型：'+(sc.type||'example')+'）'; draw(); };
+draw();
+</script>
+</body>
+</html>

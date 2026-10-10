@@ -1,0 +1,50 @@
+{
+ "show_dir": "../节目包",
+ "version": "X.X",
+ "title": "X.X「版本名」",
+ "kind": "版本前瞻",
+ "date": "2026-01-01 20:00",
+ "section0": "X.X 版本前瞻速报",
+ "sting_sub": "《{游戏}》X.X「版本名」前瞻速报",
+ "ticker": [
+  "X.X 版本「版本名」X月X日开启",
+  "新角色 XX 登场",
+  "版本福利 XX",
+  "新活动 XX 开放"
+ ],
+ "script": "稿子.md",
+ "source_video": "原视频.mp4",
+ "source_video_win": "",
+ "source_srt": "原视频字幕.srt",
+ "voice": {
+  "A": {
+   "audio": "配音/主播A.mp3",
+   "srt": "配音/主播A.srt"
+  },
+  "B": {
+   "audio": "配音/主播B.mp3",
+   "srt": "配音/主播B.srt"
+  }
+ },
+ "clips_dir": "片段",
+ "clips_dir_win": "",
+ "split_mb": 0,
+ "output_name": "{节目名}_X.X",
+ "cover": {
+  "kicker": "特别报道",
+  "special": "SPECIAL",
+  "sub": "前瞻全速报",
+  "hot_index": 2,
+  "ver_label": "VER.",
+  "info": [
+   "新角色 XX",
+   "XX",
+   "新地图 XX"
+  ],
+  "gift": "XX",
+  "gift_note": "",
+  "foot": "{GAME} · PREVIEW REPORT",
+  "bg_clip": "w00s0",
+  "bg_frame": 300
+ }
+}

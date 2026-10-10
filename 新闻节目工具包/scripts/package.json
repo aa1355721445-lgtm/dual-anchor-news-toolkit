@@ -1,0 +1,6 @@
+{
+  "name": "news-show-render",
+  "private": true,
+  "description": "渲染依赖：在本文件夹运行 npm install && npx playwright install chromium",
+  "dependencies": { "playwright": "^1.47.0" }
+}

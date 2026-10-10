@@ -1,0 +1,328 @@
+<title>节目流水线图</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: broadcast rundown sheet — a red/navy masthead, two tabbed diagrams; lanes = who does the step, chips = files. */
+:root{
+  --bg:#f3f5fa; --paper:#ffffff; --ink:#0b1638; --muted:#5b6585; --line:#d5dbea;
+  --red:#e8293b; --redsoft:#fde5e8;
+  --claude:#1f8a83; --claudesoft:#dff3f1;      /* Claude lane */
+  --you:#d6405a; --yousoft:#fde6ea;            /* 你 lane */
+  --file:#2f5fd0; --filesoft:#e3ebfc;          /* intermediate files */
+  --out:#b7791f; --outsoft:#fbf0dc;            /* deliverables */
+  --mast:#0b1638; --mastfg:#ffffff;
+  --f-disp:"Noto Sans SC","Microsoft YaHei","PingFang SC",sans-serif;
+  --f-body:"Noto Sans SC","Microsoft YaHei","PingFang SC",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0a1024; --paper:#121a36; --ink:#e8ecf8; --muted:#9aa5c6; --line:#27325a;
+  --red:#ff4d5e; --redsoft:#3a1520;
+  --claude:#45c7bd; --claudesoft:#10302f; --you:#ff7690; --yousoft:#3a1624;
+  --file:#7fa2ff; --filesoft:#18264d; --out:#f0b44f; --outsoft:#33260f;
+  --mast:#060b1c; --mastfg:#ffffff; color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#0a1024; --paper:#121a36; --ink:#e8ecf8; --muted:#9aa5c6; --line:#27325a;
+  --red:#ff4d5e; --redsoft:#3a1520;
+  --claude:#45c7bd; --claudesoft:#10302f; --you:#ff7690; --yousoft:#3a1624;
+  --file:#7fa2ff; --filesoft:#18264d; --out:#f0b44f; --outsoft:#33260f;
+  --mast:#060b1c; --mastfg:#ffffff; color-scheme:dark; }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:400 15px/1.6 var(--f-body);padding-inline:16px;padding-block:0 48px}
+.wrap{max-width:1040px;margin:0 auto}
+code,.mono{font-family:var(--f-mono);font-size:.86em}
+
+/* masthead */
+.mast{background:var(--mast);color:var(--mastfg);margin:0 -16px;padding:28px 16px 0;position:relative;overflow:hidden}
+.mast .wrap{position:relative}
+.kicker{display:inline-flex;gap:12px;align-items:center;font:700 13px/1 var(--f-body);letter-spacing:.3em}
+.kicker b{background:var(--red);color:#fff;padding:6px 10px 6px 12px}
+.kicker span{opacity:.7}
+h1{font:900 clamp(30px,6vw,52px)/1.1 var(--f-disp);margin:14px 0 6px;letter-spacing:-.01em;text-wrap:balance}
+h1 em{font-style:normal;color:var(--red)}
+.mast p{margin:0 0 20px;color:rgba(255,255,255,.72);max-width:60ch}
+.tabs{display:flex;gap:4px;flex-wrap:wrap}
+.tab{appearance:none;border:0;cursor:pointer;font:700 15px/1 var(--f-body);padding:14px 20px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.75);border-radius:6px 6px 0 0}
+.tab[aria-selected="true"]{background:var(--bg);color:var(--ink)}
+.tab:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.tab small{font:500 12px/1 var(--f-mono);opacity:.6;margin-left:8px}
+
+.panel{padding-top:24px}
+.lead{color:var(--muted);max-width:68ch;margin:0 0 18px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin:0 0 22px;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+/* ===== diagram 1: two-lane run sheet ===== */
+.lanes-head,.row{display:grid;grid-template-columns:1fr 44px 1fr;align-items:center}
+.lanes-head{position:sticky;top:env(safe-area-inset-top,0px);z-index:2;background:var(--bg);padding:8px 0;border-bottom:1px solid var(--line);margin-bottom:6px}
+.lanes-head div{font:900 14px/1 var(--f-disp);letter-spacing:.2em}
+.lanes-head .lc{color:var(--claude);text-align:right}
+.lanes-head .ly{color:var(--you)}
+.flow{position:relative}
+.flow::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--line)}
+.row{position:relative;padding:7px 0}
+.dot{grid-column:2;justify-self:center;width:30px;height:30px;border-radius:50%;background:var(--paper);border:2px solid var(--ink);display:grid;place-items:center;font:700 12px/1 var(--f-mono);position:relative;z-index:1;font-variant-numeric:tabular-nums}
+.row.you .dot{border-color:var(--you);color:var(--you)}
+.row.claude .dot{border-color:var(--claude);color:var(--claude)}
+.node{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:12px 14px;min-width:0;position:relative}
+.row.claude .node{grid-column:1;grid-row:1;border-left:4px solid var(--claude);margin-right:6px}
+.row.you .node{grid-column:3;grid-row:1;border-left:4px solid var(--you);background:var(--yousoft);margin-left:6px}
+.row.claude .node::after,.row.you .node::after{content:"";position:absolute;top:50%;width:8px;height:2px;background:var(--line)}
+.row.claude .node::after{right:-9px}.row.you .node::after{left:-13px}
+.node h3{margin:0 0 3px;font:700 16px/1.35 var(--f-disp)}
+.node p{margin:0;color:var(--muted);font-size:13.5px}
+.node .cmd{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.cmd code{background:var(--claudesoft);color:var(--claude);padding:2px 7px;border-radius:4px;font-weight:700}
+.row.you .cmd code{background:var(--paper);color:var(--you)}
+.pause{display:inline-block;font:700 11px/1 var(--f-body);letter-spacing:.12em;color:#fff;background:var(--you);padding:4px 7px;border-radius:3px;margin-right:6px;vertical-align:2px}
+.files{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.chip{display:inline-block;font:500 12px/1.2 var(--f-body);padding:3px 8px;border-radius:999px;background:var(--filesoft);color:var(--file);white-space:nowrap}
+.chip.in{background:var(--yousoft);color:var(--you)}
+.chip.out{background:var(--outsoft);color:var(--out);font-weight:700}
+
+/* decision / split rows */
+.row.split .node{grid-row:1}
+.row.split .node.l{grid-column:1;border-left:4px solid var(--claude);margin-right:6px}
+.row.split .node.r{grid-column:3;border-left:4px solid var(--you);background:var(--yousoft);margin-left:6px}
+.row.split .dot{border-color:var(--red);color:var(--red);border-style:dashed}
+.row.full .node{grid-column:1/4;grid-row:1;border:2px solid var(--ink);z-index:1}
+.row.full .dot{display:none}
+.diamond{display:inline-block;width:10px;height:10px;background:var(--red);transform:rotate(45deg);margin-right:8px;vertical-align:1px}
+.or{grid-column:2;grid-row:1;justify-self:center;z-index:1;font:900 12px/1 var(--f-disp);color:var(--red);background:var(--bg);padding:4px 0}
+.sec{grid-column:1/4;margin:16px 0 4px;text-align:center;position:relative;z-index:1}
+.sec span{background:var(--bg);padding:0 10px;font:700 12px/1 var(--f-body);letter-spacing:.3em;color:var(--muted)}
+
+/* rework box */
+.rework{margin-top:28px;background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+.rework h3{margin:0 0 10px;font:900 17px/1.3 var(--f-disp)}
+.rw{display:grid;grid-template-columns:minmax(0,13em) minmax(0,1fr);gap:6px 14px;font-size:14px}
+.rw dt{font-weight:700}
+.rw dd{margin:0;color:var(--muted);min-width:0}
+.rw dd code{color:var(--ink)}
+
+/* ===== diagram 2: data pipeline ===== */
+.pipe{display:grid;gap:0}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 34px minmax(0,1.5fr) 34px minmax(0,1fr);align-items:center;position:relative}
+.stage+.stage{margin-top:22px}
+.stage+.stage::before{content:"";position:absolute;left:50%;top:-22px;height:22px;width:2px;margin-left:-1px;background:var(--line)}
+.io{display:flex;flex-wrap:wrap;gap:5px;min-width:0}
+.io.o{justify-content:flex-start}
+.io.i{justify-content:flex-end}
+.arr{height:2px;background:var(--ink);position:relative;margin:0 4px}
+.arr::after{content:"";position:absolute;right:-2px;top:-4px;border:5px solid transparent;border-left:7px solid var(--ink);border-right:0}
+.proc{background:var(--paper);border:1px solid var(--line);border-top:3px solid var(--file);border-radius:8px;padding:12px 14px;min-width:0}
+.proc .nm{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.proc .nm code{font:700 15px/1 var(--f-mono);color:var(--file)}
+.proc .nm b{font:700 15px/1.3 var(--f-disp)}
+.proc ul{margin:6px 0 0;padding-left:1.1em;color:var(--muted);font-size:13.5px}
+.proc li+li{margin-top:2px}
+.proc.engine{border-top-color:var(--red)}
+.proc.engine .nm code{color:var(--red)}
+.group{margin:30px 0 12px;display:flex;align-items:center;gap:10px;font:900 13px/1 var(--f-disp);letter-spacing:.25em;color:var(--muted)}
+.group::after{content:"";flex:1;height:1px;background:var(--line)}
+.group:first-child{margin-top:0}
+
+.engine-box{margin-top:30px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:12px}
+.eb{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:12px 14px;min-width:0}
+.eb h4{margin:0 0 4px;font:700 15px/1.3 var(--f-disp)}
+.eb p{margin:0;font-size:13.5px;color:var(--muted)}
+.foot{margin-top:28px;font-size:13px;color:var(--muted)}
+
+@media (max-width:720px){
+  .lanes-head{display:none}
+  .flow::before{left:15px}
+  .row,.row.split{grid-template-columns:30px 1fr;gap:0 10px;align-items:start}
+  .dot{grid-column:1;grid-row:1;margin-top:10px}
+  .row.claude .node,.row.you .node,.row.split .node.l,.row.split .node.r{grid-column:2;grid-row:auto;margin:0}
+  .row.split .node.r{margin-top:8px}
+  .row.claude .node::after,.row.you .node::after{display:none}
+  .or{display:none}
+  .row.full .node{grid-column:1/3}
+  .sec{grid-column:1/3;text-align:left}
+  .who{display:inline-block;font:700 11px/1 var(--f-body);letter-spacing:.15em;margin-bottom:4px}
+  .row.claude .who,.node.l .who{color:var(--claude)} .row.you .who,.node.r .who{color:var(--you)}
+  .stage{grid-template-columns:1fr}
+  .arr{width:2px;height:16px;margin:4px auto}
+  .arr::after{right:-4px;top:auto;bottom:-6px;border:5px solid transparent;border-top:7px solid var(--ink);border-bottom:0}
+  .io.i,.io.o{justify-content:center}
+  .rw{grid-template-columns:1fr}
+  .rw dd{margin-bottom:6px}
+}
+@media (min-width:721px){ .who{display:none} }
+@media (prefers-reduced-motion:no-preference){ .panel{animation:in .25s ease-out} @keyframes in{from{transform:translateY(4px)}to{transform:none}} }
+</style>
+
+<header class="mast">
+  <div class="wrap">
+    <div class="kicker"><b>流程图</b><span>新闻节目工具包 · game-news-show</span></div>
+    <h1>双主播资讯节目<em>流水线</em></h1>
+    <p>「工作流程」看一期节目怎么做出来、哪一步要你出手；「原理流程」看工具包内部怎么把稿子和配音变成成片。</p>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="t-workflow" aria-controls="workflow" aria-selected="true">工作流程<small>谁做什么</small></button>
+      <button class="tab" role="tab" id="t-principle" aria-controls="principle" aria-selected="false">原理流程<small>数据怎么走</small></button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+<!-- ================= 1. 工作流程 ================= -->
+<section class="panel" id="workflow" role="tabpanel" aria-labelledby="t-workflow">
+  <p class="lead">从找到 B 站回放到交付成片，一共 10 步。左边是 Claude 做的，右边粉色是要你出手的地方；标着「等你」的步骤，Claude 会停下来等你。</p>
+  <div class="legend">
+    <span><i style="background:var(--claude)"></i>Claude 做</span>
+    <span><i style="background:var(--you)"></i>你做（Claude 停下等）</span>
+    <span><i style="background:var(--you);opacity:.35"></i>你给的素材</span>
+    <span><i style="background:var(--file);opacity:.5"></i>中间文件</span>
+    <span><i style="background:var(--out)"></i>成品</span>
+  </div>
+
+  <div class="lanes-head"><div class="lc">CLAUDE</div><div></div><div class="ly">你</div></div>
+  <div class="flow">
+
+    <div class="row full"><div class="node">
+      <h3><span class="diamond"></span>先选在哪里跑：优先你的电脑，不行再走云端</h3>
+      <p>在你电脑上跑 <code>doctor</code> 全绿 → 全程本机，原视频直接截、成片一个文件。命令行起不来 → 在云端跑，素材拷进去，片段由你在本机截，成片按单文件上限切成几段写回。</p>
+    </div></div>
+
+    <div class="row claude"><div class="node"><span class="who">CLAUDE</span><h3>初始化（第一次用 / 换电脑 / 收到新安装包）</h3><p>把安装包解压合并进工作区，分好区（工具包、节目包、每期、安装包存档），检查环境和节目包，列出还缺什么和下一步。</p><div class="cmd"><code>setup</code></div><div class="files"><span class="chip">工作区.json</span></div></div><div class="dot">0</div></div>
+    <div class="row you"><div class="dot">◆</div><div class="node"><span class="who">你 + CLAUDE · 只做一次</span><h3>定节目：主播、场景、包装</h3><p>填节目名和两位主播（名字、简称、颜色、表情表）；看场景预览，换成自己的布景（导出分层图 → 绘图软件里改 → 场景编辑器对位）；包装先用白字黑底占位，之后换成自己的台标、新闻栏、转场、片头。</p><div class="cmd"><code>scene</code><code>scene --export</code></div><div class="files"><span class="chip in">show.json</span><span class="chip in">场景图</span><span class="chip in">包装脚本</span></div></div></div>
+    <div class="sec"><span>准备</span></div>
+    <div class="row claude"><div class="node"><span class="who">CLAUDE</span><h3>建期</h3><p>新建本期文件夹，填好版本、日期、快讯、封面文字。</p><div class="cmd"><code>init</code><code>doctor</code></div><div class="files"><span class="chip">episode.json</span></div></div><div class="dot">1</div></div>
+    <div class="row claude"><div class="node"><span class="who">CLAUDE</span><h3>找视频</h3><p>在浏览器里找官方号最新一期前瞻（或你给的链接）。需要你已登录 B 站。</p></div><div class="dot">2</div></div>
+    <div class="row claude"><div class="node"><span class="who">CLAUDE</span><h3>拿字幕 + 截图核对</h3><p>B 站 AI 字幕转成 srt；按字幕挑时间点截图，核对名字和数字。</p><div class="cmd"><code>bsub</code></div><div class="files"><span class="chip">原视频字幕.srt</span><span class="chip">截图</span></div></div><div class="dot">3</div></div>
+    <div class="row claude"><div class="node"><span class="who">CLAUDE</span><h3>关键点汇总</h3><p>每条事实带原视频时间点；查出「官方没在讲话」的时段，留原声用。</p><div class="cmd"><code>speechmap</code></div><div class="files"><span class="chip">关键点汇总.md</span></div></div><div class="dot">4</div></div>
+
+    <div class="sec"><span>稿子与配音</span></div>
+    <div class="row claude"><div class="node"><span class="who">CLAUDE</span><h3>写稿</h3><p>先读主播人设；（可选）开头写「看点速报」（4–6 条本期爆点，两人轮流，20–30 秒），再按标记格式写正片：🎬 片段、表情、镜头、要点贴纸、收屏……写完检查到没有 ⚠，再列出这期要用的表情/动作贴纸，缺哪张。</p><div class="cmd"><code>parse</code><code>stickers</code></div><div class="files"><span class="chip">稿子.md</span><span class="chip">贴纸需求.md</span></div></div><div class="dot">5</div></div>
+    <div class="row you"><div class="dot">✎</div><div class="node"><span class="who">你</span><h3><span class="pause">等你</span>审稿</h3><p>删改台词，定下【梗位】这些待讨论的地方。贴纸需求里有要新画的，就用生图模型画：一个表情+动作一整张图，不分部件。</p><div class="files"><span class="chip in">新贴纸（需要时）</span></div></div></div>
+    <div class="row claude"><div class="node"><span class="who">CLAUDE</span><h3>出配音稿</h3><p>每人一份纯台词，数字转成汉字，标记全部去掉；附两人对话顺序表。</p><div class="cmd"><code>dub</code></div><div class="files"><span class="chip">主播A_配音稿.txt</span><span class="chip">主播B_配音稿.txt</span></div></div><div class="dot">6</div></div>
+    <div class="row you"><div class="dot">♪</div><div class="node"><span class="who">你</span><h3><span class="pause">等你</span>配音</h3><p>用 TTS 工具或真人配，每人一条完整音频，最好导出带时间码的字幕。</p><div class="files"><span class="chip in">主播A.mp3 + .srt</span><span class="chip in">主播B.mp3 + .srt</span></div></div></div>
+
+    <div class="sec"><span>排时间线与截片段</span></div>
+    <div class="row claude"><div class="node"><span class="who">CLAUDE</span><h3>对齐配音 + 自动分镜</h3><p>两人台词排成一条时间线（重叠必须 0 毫秒），再补全表情、镜头、大屏片段编号 w00s0…</p><div class="cmd"><code>align</code><code>stage</code></div><div class="files"><span class="chip">timeline.json</span><span class="chip">film.json</span></div></div><div class="dot">7</div></div>
+    <div class="row split"><div class="node l"><span class="who">CLAUDE · 本机</span><h3>直接截片段</h3><p>原视频在你电脑上、本机能跑时。</p><div class="cmd"><code>clips --cut</code></div></div><div class="node r"><span class="who">你 · 云端时</span><h3><span class="pause">等你</span>运行截片段.ps1</h3><p>Claude 生成脚本和清单，你在 PowerShell 里跑（要装 ffmpeg）。</p><div class="files"><span class="chip in">片段/w00s0.mp4 …</span></div></div><div class="dot">8</div></div>
+
+    <div class="sec"><span>出片</span></div>
+    <div class="row claude"><div class="node"><span class="who">CLAUDE</span><h3>渲染成片</h3><p>拆片段帧 → 合成音效和原声 → 先截几张图看 → 全片逐帧渲染（后台，6 分钟片约 19 分钟）→ 编码、按板块分段、写章节。</p><div class="cmd"><code>prepclips</code><code>audio</code><code>render</code><code>encode</code></div><div class="files"><span class="chip out">成片 mp4</span><span class="chip out">章节.txt</span></div></div><div class="dot">9</div></div>
+    <div class="row claude"><div class="node"><span class="who">CLAUDE</span><h3>封面 + 检查</h3><p>出 16:9 和 4:3 两张封面；自检后逐条过检查清单：字幕完整、大屏不透、话没被打断、哪些贴纸还是占位。</p><div class="cmd"><code>cover</code><code>qa</code></div><div class="files"><span class="chip out">封面_16x9.png</span><span class="chip out">封面_4x3.png</span></div></div><div class="dot">10</div></div>
+    <div class="row you"><div class="dot">★</div><div class="node"><span class="who">你</span><h3>收片</h3><p>成片、封面、章节都在本期 <code>成片</code> 文件夹；章节时间直接拿去做进度条。</p></div></div>
+  </div>
+
+  <div class="rework">
+    <h3>要返工时，从哪一步重跑</h3>
+    <dl class="rw">
+      <dt>只改标记（表情、镜头、要点）</dt><dd><code>parse</code> → <code>align</code> → <code>stage</code> → <code>audio</code> → <code>render</code> → <code>encode</code>，不用重配音</dd>
+      <dt>改了台词</dt><dd><code>dub</code> → 你重配改动的句子 → 从 <code>align</code> 起全部重跑</dd>
+      <dt>片段时间点不对</dt><dd>改稿子里的 🎬 → <code>stage</code> → <code>clips</code> 重截变了的几段 → <code>prepclips</code> 起</dd>
+      <dt>只改声音</dt><dd><code>audio</code> → <code>encode</code>，画面不用重渲</dd>
+      <dt>只改封面</dt><dd>改 episode.json 的封面文字 → <code>cover --tag v2</code></dd>
+    </dl>
+  </div>
+</section>
+
+<!-- ================= 2. 原理流程 ================= -->
+<section class="panel" id="principle" role="tabpanel" aria-labelledby="t-principle" hidden>
+  <p class="lead">每一行是一个命令：左边吃进什么，中间怎么处理，右边吐出什么。上一行的产物就是下一行的原料，最后汇到渲染和编码。</p>
+  <div class="legend">
+    <span><i style="background:var(--you);opacity:.35"></i>你给的素材 / 节目包</span>
+    <span><i style="background:var(--file);opacity:.5"></i>中间文件（work/ 文件夹）</span>
+    <span><i style="background:var(--out)"></i>成品</span>
+    <span><i style="background:var(--red)"></i>画面引擎</span>
+  </div>
+
+  <div class="pipe">
+    <div class="group">读稿</div>
+    <div class="stage">
+      <div class="io i"><span class="chip in">稿子.md</span><span class="chip in">show.json 表情表</span></div><div class="arr"></div>
+      <div class="proc"><div class="nm"><code>parse</code><b>拆稿子</b></div><ul><li>逐句认出谁在说、台词、（动作），把【标记】连同它在句中的字位置记下来</li><li>检查表情名、镜头、特效、@锚点是否存在</li></ul></div>
+      <div class="arr"></div><div class="io o"><span class="chip">script.json</span></div>
+    </div>
+    <div class="stage">
+      <div class="io i"><span class="chip">script.json</span><span class="chip in">贴纸文件夹</span></div><div class="arr"></div>
+      <div class="proc"><div class="nm"><code>stickers</code><b>贴纸需求</b></div><ul><li>收集每句的【贴纸】【反应】和动作提示，按表情表对到贴纸文件</li><li>没有的列成清单：每张都是完整的一张图，不分部件、不拼装</li></ul></div>
+      <div class="arr"></div><div class="io o"><span class="chip">贴纸需求.md</span></div>
+    </div>
+    <div class="stage">
+      <div class="io i"><span class="chip">script.json</span></div><div class="arr"></div>
+      <div class="proc"><div class="nm"><code>dub</code><b>口播版</b></div><ul><li>数字转汉字：20 抽 → 二十抽，2 个 → 两个，第 2 → 第二，50% → 百分之五十</li><li>去掉所有标记和动作，按人分开</li></ul></div>
+      <div class="arr"></div><div class="io o"><span class="chip out">配音稿 ×2</span><span class="chip">对话顺序对照.md</span></div>
+    </div>
+
+    <div class="group">排时间</div>
+    <div class="stage">
+      <div class="io i"><span class="chip in">配音 mp3 ×2</span><span class="chip in">配音 srt ×2</span><span class="chip">script.json</span></div><div class="arr"></div>
+      <div class="proc"><div class="nm"><code>align</code><b>对齐配音</b></div><ul><li>每句口播文字在配音字幕里模糊匹配 → 得到「每个字几秒说出来」</li><li>用波形修边界：句尾声音没完就延长，永远不比字幕短；不伸进被删掉的句子</li><li>按规则排间隔：换人 0.36 秒、抢话 0.14 秒、换板块 1.45 秒</li></ul></div>
+      <div class="arr"></div><div class="io o"><span class="chip">timeline.json</span><span class="chip">两条人声轨</span></div>
+    </div>
+    <div class="stage">
+      <div class="io i"><span class="chip">timeline.json</span><span class="chip in">贴纸文件夹</span></div><div class="arr"></div>
+      <div class="proc"><div class="nm"><code>stage</code><b>自动分镜</b></div><ul><li>表情：标记 &gt; 动作词（掰手指→数数）&gt; 默认；镜头：带「！」给特写，短句接话用全景</li><li>🎬 变成大屏窗口和片段编号 w00s0…，锚点换算成秒</li><li>字幕按标点切成短语，用字的时间显示</li></ul></div>
+      <div class="arr"></div><div class="io o"><span class="chip">film.json</span></div>
+    </div>
+
+    <div class="group">素材</div>
+    <div class="stage">
+      <div class="io i"><span class="chip">film.json</span><span class="chip in">原视频</span></div><div class="arr"></div>
+      <div class="proc"><div class="nm"><code>clips</code><b>截片段</b></div><ul><li>每段从时间点起截「需要的长度 + 2.5 秒」，补边到 1280×720，保留声音</li><li>云端时只生成 ps1 / sh 脚本，由你在本机运行</li></ul></div>
+      <div class="arr"></div><div class="io o"><span class="chip in">片段 w00s0.mp4 …</span></div>
+    </div>
+    <div class="stage">
+      <div class="io i"><span class="chip in">片段 mp4</span></div><div class="arr"></div>
+      <div class="proc"><div class="nm"><code>prepclips</code><b>拆帧拆音</b></div><ul><li>每段拆成每秒 30 张图，给大屏逐帧贴图</li><li>音轨单独存，给原声用</li></ul></div>
+      <div class="arr"></div><div class="io o"><span class="chip">片段帧</span><span class="chip">片段原声</span></div>
+    </div>
+    <div class="stage">
+      <div class="io i"><span class="chip">film.json</span><span class="chip">人声轨</span><span class="chip">片段原声</span></div><div class="arr"></div>
+      <div class="proc"><div class="nm"><code>audio</code><b>混音</b></div><ul><li>音效全部程序合成：换表情 pop、要点 boing、进大屏 whoosh、拍桌 thump</li><li>只给标了「原声」的片段垫底：响度统一，主播说话时压低 62%</li><li>不放 PV 音乐、不加 BGM</li></ul></div>
+      <div class="arr"></div><div class="io o"><span class="chip">master.wav</span></div>
+    </div>
+
+    <div class="group">画面与输出</div>
+    <div class="stage">
+      <div class="io i"><span class="chip">film.json</span><span class="chip">片段帧</span><span class="chip in">贴纸 · 台标 · 标题图</span></div><div class="arr"></div>
+      <div class="proc engine"><div class="nm"><code>render</code><b>逐帧渲染</b></div><ul><li>演播室是一个网页（studio.html），在无头浏览器里打开</li><li>把时钟换成「虚拟时钟」，每次只往前走 1/30 秒再截一张图，所以结果每次都一样、不怕卡顿</li><li>多个进程分段并行；中断了用 --keep 只补缺的帧</li></ul></div>
+      <div class="arr"></div><div class="io o"><span class="chip">frames/ 每帧一张 jpg</span></div>
+    </div>
+    <div class="stage">
+      <div class="io i"><span class="chip">frames/</span><span class="chip">master.wav</span></div><div class="arr"></div>
+      <div class="proc"><div class="nm"><code>encode</code><b>编码分段</b></div><ul><li>ffmpeg 把帧和声音合成 H.264 视频</li><li>在每个板块转场被盖住的那一刻插关键帧，超过大小就在那里切段</li><li>板块转场开始的时间写进章节</li></ul></div>
+      <div class="arr"></div><div class="io o"><span class="chip out">成片 mp4</span><span class="chip out">章节.txt</span></div>
+    </div>
+    <div class="stage">
+      <div class="io i"><span class="chip">片段帧</span><span class="chip in">贴纸 · 游戏 logo</span><span class="chip in">封面文字</span></div><div class="arr"></div>
+      <div class="proc"><div class="nm"><code>cover</code><b>封面</b></div><ul><li>同一个模板按 16:9 和 4:3 两套排版出图，标题太长自动缩小</li></ul></div>
+      <div class="arr"></div><div class="io o"><span class="chip out">封面 ×2</span></div>
+    </div>
+    <div class="stage">
+      <div class="io i"><span class="chip">frames/</span><span class="chip">timeline.json</span></div><div class="arr"></div>
+      <div class="proc"><div class="nm"><code>qa</code><b>自检</b></div><ul><li>查人声重叠、缺片段、空字幕、帧是否齐全</li><li>拼出每个转场和进出大屏的关键帧，给人看</li></ul></div>
+      <div class="arr"></div><div class="io o"><span class="chip">qa_关键帧.jpg</span></div>
+    </div>
+  </div>
+
+  <div class="group" style="margin-top:34px">画面引擎里每一帧做了什么</div>
+  <div class="engine-box">
+    <div class="eb"><h4>场景</h4><p>节目包 scene 决定：自带示例演播室、你的背景图+前景图，或你写的场景脚本。主播站位和大屏位置都在这里配。</p></div>
+    <div class="eb"><h4>主播贴纸</h4><p>每个表情是一整张图，不拼部件。说话时整张图跟着音量做 Y 轴弹性拉伸；换表情先压扁再弹起。没画的用占位小人。</p></div>
+    <div class="eb"><h4>推进大屏</h4><p>镜头穿过两人推到屏幕，推到底时实机画面铺满全屏；收屏时再拉回全景，两人落地一跳。</p></div>
+    <div class="eb"><h4>字幕与要点</h4><p>字幕按短语出现（样式由包装决定）；要点贴纸最多 3 个，有固定位置。</p></div>
+    <div class="eb"><h4>看点速报</h4><p>可选的开头 20–30 秒整屏冷开场，接片头再进演播室。画面版式由你的包装决定。</p></div>
+    <div class="eb"><h4>包装</h4><p>台标、新闻栏、板块转场、片头、灯光、特效都在一个包装脚本里；通用版是白字黑底的占位，换成你自己的设计。转场盖住画面的那一刻切好下一个场景。</p></div>
+    
+  </div>
+  <p class="foot">所有命令都是 <code>python pipeline.py &lt;命令&gt; --ep &lt;本期文件夹&gt;</code>，细节见工具包 docs 文件夹。</p>
+</section>
+</main>
+
+<script>
+(function(){
+  const tabs=[...document.querySelectorAll('.tab')];
+  function show(id,push){
+    tabs.forEach(t=>{const on=t.getAttribute('aria-controls')===id;t.setAttribute('aria-selected',on);document.getElementById(t.getAttribute('aria-controls')).hidden=!on;});
+    if(push){try{history.replaceState(null,'','#'+id);}catch(e){}}
+  }
+  tabs.forEach(t=>t.addEventListener('click',()=>show(t.getAttribute('aria-controls'),true)));
+  const h=(location.hash||'').slice(1); if(h==='principle'||h==='workflow') show(h,false);
+})();
+</script>
